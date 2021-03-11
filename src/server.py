@@ -20,12 +20,13 @@ class Server(object):
         self.sock.setblocking(False)
         self.sel.register(self.sock, selectors.EVENT_READ, data=None)
         if save:
-            self._save_file = os.path.join(os.getcwd(), time.strftime('%Y%m%d%H%M')+f"_{port}.txt")
+            self._prefix = os.path.join("./_recv", time.strftime('%Y%m%d%H%M')+f"_P{port}")
 
     def accept_wrapper(self, accpet_sock):
         conn, addr = accpet_sock.accept()  
         print("accepted connection from", addr)
         conn.setblocking(False) 
+        print(addr[0] )
         message = ServerMessage(self.sel, conn, addr)
         self.sel.register(conn, selectors.EVENT_READ, data=message)
     
@@ -65,13 +66,18 @@ class Server(object):
             print(type(content), request_type)
             str_content = content.decode("utf-8")
             val_content = str_content.split(">>")[-1][1:]
-            append_to_txt(self._save_file, val_content)
-            print(f"message append to {self._save_file}")
+            self._filename = (self._prefix + "IP" + str(message.accept_ip) + ".txt")
+            append_to_txt(self._filename, val_content)
+            print(f"message append to {self._filename}")
         except NotImplementedError:
-            print("Save failed, Not support json type")
+            print("Save failed, Only save recv data from client")
         finally:
             print("Exit saving message")
     
     @property
-    def file(self):
-        return self._save_file
+    def prefix(self):
+        return self._prefix
+
+    @property
+    def latest_save_file(self):
+        return self._filename

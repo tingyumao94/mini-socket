@@ -214,3 +214,8 @@ class SMessage:
         message = self._create_message(**response)
         self.response_created = True
         self._send_buffer += message
+
+    @property
+    def accept_ip(self):
+        return self.addr[0]
+
