@@ -6,7 +6,16 @@ import time, os
 from .utils import append_to_txt
 
 class Server(object):
-    """ Multi-connection """
+    """ Multi-connection 
+    Run server in Machine A.
+    Run clinet in Machine B. 
+    And mini-socket is able to build connect between A and B.
+
+    In basic Client and Sever:
+        B -> send data -> A -> save data in some files -> send reponse to B -> close.
+        B -> requry data -> A -> parse query and send data back -> B recv data and send response to A -> close.
+    
+    """
     def __init__(self, host, port, save=True):
         super().__init__()
         self.host = host
@@ -81,3 +90,18 @@ class Server(object):
     @property
     def latest_save_file(self):
         return self._filename
+
+
+class MidServer(Server):
+    """In some machine dont have access to run server backgroud, 
+        most because the port is not allow to exposed.
+       So we build MidServer: 
+
+       Run Client in Machine A,
+       Run Client in Machine B,
+       Run MidServer in Machine C.
+
+       Using Machine C to connet Machin A and Machine B.
+    """
+
+    pass
