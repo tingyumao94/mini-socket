@@ -6,3 +6,7 @@ def load_json(filename):
 def append_to_txt(ori_file, new_lines):
     with open(ori_file, 'a') as f:
         f.write(new_lines+'\n')
+
+def save_json(filename, content):
+    with open(filename, "w") as f:
+        json.dump(content, f)

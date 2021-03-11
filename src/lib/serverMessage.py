@@ -17,7 +17,8 @@ class SMessage:
         self.jsonheader = None
         self.request = None
         self.response_created = False
-        self.request_search = load_json(os.path.join(pathlib.Path(__file__).parent.absolute(),  "_request.json"))
+        self._request_file = os.path.join(pathlib.Path(__file__).parent.absolute(),  "_request.json")
+        self.request_search = load_json(self._request_file)
 
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
@@ -219,3 +220,6 @@ class SMessage:
     def accept_ip(self):
         return self.addr[0]
 
+    @property
+    def request_file(self):
+        return self._request_files

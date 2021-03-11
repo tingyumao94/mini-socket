@@ -3,7 +3,7 @@ import selectors
 from .lib import ServerMessage
 import traceback
 import time, os
-from .utils import append_to_txt
+from .utils import append_to_txt, save_json, load_json
 
 class Server(object):
     """ Multi-connection 
@@ -75,7 +75,8 @@ class Server(object):
             print(type(content), request_type)
             str_content = content.decode("utf-8")
             val_content = str_content.split(">>")[-1][1:]
-            self._filename = (self._prefix + "IP" + str(message.accept_ip) + ".txt")
+            self._filename = (self._prefix + "IP" + str(message.accept_ip) + ".json")
+            # only return string  type data
             append_to_txt(self._filename, val_content)
             print(f"message append to {self._filename}")
         except NotImplementedError:
@@ -91,17 +92,39 @@ class Server(object):
     def latest_save_file(self):
         return self._filename
 
-
 class MidServer(Server):
-    """In some machine dont have access to run server backgroud, 
-        most because the port is not allow to exposed.
-       So we build MidServer: 
+    def save_events(self, message):
+        try:
+            content = message.request
+            request_type = message.jsonheader.get("content-type")
+            if "json" in request_type:
+                raise NotImplementedError("Json is not support to save")
+            print(type(content), request_type)
+            str_content = content.decode("utf-8")
+            split_content = str_content.split(">>")
+            val_content = split_content[-1][1:]
+            type_content = split_content[0][:-1]
+            # according type_content to save val_content
+            if type_content.lower() == "net":
+                # to json, re-write the request file
+                print("Note: recv new nets, reflush  request file")
+                val_content_dict = {"net": val_content}
+                save_json(message.request_file, val_content_dict)
+            elif type_content.lower() == "lat":
+                print("recv latency")
+                ori_request = load_json(message.request_file)
+                str_net = ori_request["net"]
+                val_content_dict = {str_net: val_content}
+                print("Note: recv net latency, reflushing request file")
+                save_json(message.request_file, val_content_dict)
+        except NotImplementedError:
+            print("Save failed, Only save recv data from client")
+        finally:
+            print("Exit saving message")
 
-       Run Client in Machine A,
-       Run Client in Machine B,
-       Run MidServer in Machine C.
 
-       Using Machine C to connet Machin A and Machine B.
-    """
+    
+    
 
-    pass
+
+    

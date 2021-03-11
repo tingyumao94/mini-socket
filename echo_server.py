@@ -1,4 +1,4 @@
-from src.server import Server
+from src.server import MidServer as Server
 import sys
 
 if __name__ == "__main__":
