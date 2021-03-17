@@ -45,3 +45,8 @@ Machine C: 挂服务端; Machine A/B: 挂客户端.
 `python echo_client.py ${IP}$ ${PORT}$ ${TYPE}$ ${CONTENT}$ `
 
 `TYPE`:  请求数据 用 `search` ; 发数据 非 `search`  的任何字符都可以. 
+
+
+## TODO
+
+- [ ] add quiet mode

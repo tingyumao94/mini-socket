@@ -1,2 +1,2 @@
-from .serverMessage import SMessage as ServerMessage
+from .serverMessage import SMessage, MidSMessage
 from .clientMessage import CMessage as ClientMessage

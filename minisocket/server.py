@@ -1,6 +1,7 @@
 import socket
 import selectors
-from .lib import ServerMessage
+# from .lib import SMessage as ServerMessage
+from .lib import MidSMessage as ServerMessage
 import traceback
 import time, os
 from .utils import append_to_txt, save_json, load_json
@@ -99,7 +100,6 @@ class MidServer(Server):
             request_type = message.jsonheader.get("content-type")
             if "json" in request_type:
                 raise NotImplementedError("Json is not support to save")
-            print(type(content), request_type)
             str_content = content.decode("utf-8")
             split_content = str_content.split(">>")
             val_content = split_content[-1][1:]
@@ -107,15 +107,15 @@ class MidServer(Server):
             # according type_content to save val_content
             if type_content.lower() == "net":
                 # to json, re-write the request file
-                print("Note: recv new nets, reflush  request file")
+                print(" \n >> Note: recv new nets, reflush  request file")
                 val_content_dict = {"net": val_content}
                 save_json(message.request_file, val_content_dict)
             elif type_content.lower() == "lat":
-                print("recv latency")
+                print(" \n >> recv latency")
                 ori_request = load_json(message.request_file)
                 str_net = ori_request["net"]
                 val_content_dict = {str_net: val_content}
-                print("Note: recv net latency, reflushing request file")
+                print(" \n >> Note: recv net latency, reflushing request file")
                 save_json(message.request_file, val_content_dict)
         except NotImplementedError:
             print("Save failed, Only save recv data from client")

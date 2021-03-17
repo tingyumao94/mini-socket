@@ -6,7 +6,7 @@ import struct
 import pathlib
 from ..utils import load_json
 
-class SMessage:
+class SMessage(object):
     def __init__(self, selector, sock, addr):
         self.selector = selector
         self.sock = sock
@@ -222,4 +222,52 @@ class SMessage:
 
     @property
     def request_file(self):
-        return self._request_files
+        return self._request_file
+
+
+class MidSMessage(SMessage):
+    @property
+    def _match(self):
+        if self._stat == "send":
+            query = query = self.request.get("value")
+            answer = self.request_search.get(query)
+            return answer or False
+        else:
+            return True
+    
+    def process_events(self, mask):
+        # recv new net/latency and which client querying 
+        if mask & selectors.EVENT_READ:
+            # read request
+            self.read()
+        if mask & selectors.EVENT_WRITE:
+            # send response to client
+            if self._match:
+                # recv new net and waiting latency
+                self.write()
+                # wating hang client
+                # set time outside
+
+    def process_request(self):
+        content_len = self.jsonheader["content-length"]
+        if not len(self._recv_buffer) >= content_len:
+            return
+        data = self._recv_buffer[:content_len]
+        self._recv_buffer = self._recv_buffer[content_len:]
+        if self.jsonheader["content-type"] == "text/json":
+            encoding = self.jsonheader["content-encoding"]
+            self.request = self._json_decode(data, encoding)
+            self._stat = "send"
+            print("received request", repr(self.request), "from", self.addr)
+        else:
+            # Binary or unknown content-type
+            self.request = data
+            print(
+                f'received {self.jsonheader["content-type"]} request from',
+                self.addr,
+            )
+            print("  content:  ", self.request)
+            self._stat = "recv"
+
+        # Set selector to listen for write events, we're done reading.
+        self._set_selector_events_mask("w")

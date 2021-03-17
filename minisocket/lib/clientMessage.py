@@ -5,7 +5,7 @@ import io
 import struct
 
 class CMessage:
-    def __init__(self, selector, sock, addr, request):
+    def __init__(self, selector, sock, addr, request, quiet=False):
         self.selector = selector
         self.sock = sock
         self.addr = addr
