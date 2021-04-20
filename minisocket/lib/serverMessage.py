@@ -226,6 +226,7 @@ class SMessage(object):
 
 
 class MidSMessage(SMessage):
+    # set _stat to waiting
     @property
     def _match(self):
         if self._stat == "send":
@@ -246,7 +247,6 @@ class MidSMessage(SMessage):
                 # recv new net and waiting latency
                 self.write()
                 # wating hang client
-                # set time outside
 
     def process_request(self):
         content_len = self.jsonheader["content-length"]

@@ -1,10 +1,13 @@
 import socket
 import selectors
-# from .lib import SMessage as ServerMessage
-from .lib import MidSMessage as ServerMessage
+from .lib import SMessage, MidSMessage
 import traceback
 import time, os
 from .utils import append_to_txt, save_json, load_json
+import random
+## add for demo 
+def fake_time(net):
+    return random.randint(1,100)
 
 class Server(object):
     """ Multi-connection 
@@ -16,12 +19,14 @@ class Server(object):
         B -> send data -> A -> save data in some files -> send reponse to B -> close.
         B -> requry data -> A -> parse query and send data back -> B recv data and send response to A -> close.
     
+    demo mode: show the case in tutorial
     """
-    def __init__(self, host, port, save=True):
+    def __init__(self, host, port, save=True, demo=False):
         super().__init__()
         self.host = host
         self.port = port
         self.save = save
+        self._demo = demo
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sel  = selectors.DefaultSelector()
 
@@ -37,7 +42,7 @@ class Server(object):
         print("accepted connection from", addr)
         conn.setblocking(False) 
         print(addr[0] )
-        message = ServerMessage(self.sel, conn, addr)
+        message = SMessage(self.sel, conn, addr)
         self.sel.register(conn, selectors.EVENT_READ, data=message)
     
     def run(self):
@@ -53,7 +58,6 @@ class Server(object):
                         try:
                             message.process_events(mask)
                             if self.save and mask==1:
-                                # avoid repeat save
                                 self.save_events(message)
                         except Exception:
                             print(
@@ -76,10 +80,18 @@ class Server(object):
             print(type(content), request_type)
             str_content = content.decode("utf-8")
             val_content = str_content.split(">>")[-1][1:]
-            self._filename = (self._prefix + "IP" + str(message.accept_ip) + ".json")
+            self._filename = (self._prefix + "IP" + str(message.accept_ip) + ".txt")
             # only return string  type data
-            append_to_txt(self._filename, val_content)
-            print(f"message append to {self._filename}")
+            append_to_txt(self._filename, val_content) # 
+            print(f"message append to {self._filename}") 
+            if self._demo:
+                # cal latency
+                latency = fake_time(val_content)
+                all_request = load_json(message.request_file)
+                all_request.update({val_content: latency})
+                print(" \n recv new net latency, updating request file")
+                save_json(message.request_file, all_request)
+                
         except NotImplementedError:
             print("Save failed, Only save recv data from client")
         finally:
@@ -94,7 +106,16 @@ class Server(object):
         return self._filename
 
 class MidServer(Server):
+    def accept_wrapper(self, accpet_sock):
+        conn, addr = accpet_sock.accept()  
+        print("accepted connection from", addr)
+        conn.setblocking(False) 
+        print(addr[0] )
+        message = MidSMessage(self.sel, conn, addr)
+        self.sel.register(conn, selectors.EVENT_READ, data=message)
+    
     def save_events(self, message):
+        # alway flush request file
         try:
             content = message.request
             request_type = message.jsonheader.get("content-type")
@@ -108,7 +129,7 @@ class MidServer(Server):
             if type_content.lower() == "net":
                 # to json, re-write the request file
                 print(" \n >> Note: recv new nets, reflush  request file")
-                val_content_dict = {"net": val_content}
+                val_content_dict = {"net": val_content}  # make sure query latest net
                 save_json(message.request_file, val_content_dict)
             elif type_content.lower() == "lat":
                 print(" \n >> recv latency")
