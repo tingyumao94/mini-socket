@@ -35,7 +35,7 @@ class Server(object):
         self.sock.setblocking(False)
         self.sel.register(self.sock, selectors.EVENT_READ, data=None)
         if save:
-            self._prefix = os.path.join("./_recv", time.strftime('%Y%m%d%H%M')+f"_P{port}")
+            self._prefix = os.path.join("./_recv", time.strftime('%Y%m%d%H%M')+"_P{}".format(port) )
 
     def accept_wrapper(self, accpet_sock):
         conn, addr = accpet_sock.accept()  
@@ -62,7 +62,7 @@ class Server(object):
                         except Exception:
                             print(
                                 "main: error: exception for",
-                                f"{message.addr}:\n{traceback.format_exc()}",
+                                "{}:\n{}".format(message.addr, traceback.format_exc()),
                             )
                             message.close()
 
@@ -83,7 +83,7 @@ class Server(object):
             self._filename = (self._prefix + "IP" + str(message.accept_ip) + ".txt")
             # only return string  type data
             append_to_txt(self._filename, val_content) # 
-            print(f"message append to {self._filename}") 
+            print("message append to {}".format(self._filename) ) 
             if self._demo:
                 # cal latency
                 latency = fake_time(val_content)

@@ -17,7 +17,7 @@ class SMessage(object):
         self.jsonheader = None
         self.request = None
         self.response_created = False
-        self._request_file = os.path.join(pathlib.Path(__file__).parent.absolute(),  "_request.json")
+        self._request_file = str(pathlib.Path(__file__).parent.absolute() /  "_request.json")
         self.request_search = load_json(self._request_file)
 
     def _set_selector_events_mask(self, mode):
@@ -29,7 +29,7 @@ class SMessage(object):
         elif mode == "rw":
             events = selectors.EVENT_READ | selectors.EVENT_WRITE
         else:
-            raise ValueError(f"Invalid events mask mode {repr(mode)}.")
+            raise ValueError("Invalid events mask mode {}.".format(repr(mode) ) )
         self.selector.modify(self.sock, events, data=self)
 
     def _read(self):
@@ -89,10 +89,10 @@ class SMessage(object):
         action = self.request.get("action")
         if action == "search":
             query = self.request.get("value")
-            answer = self.request_search.get(query) or f'No match for "{query}".'
+            answer = self.request_search.get(query) or 'No match for "{}".'.format(query)
             content = {"result": answer}
         else:
-            content = {"result": f'Error: invalid action "{action}".'}
+            content = {"result": 'Error: invalid action "{}".'.format(action) }
         content_encoding = "utf-8"
         response = {
             "content_bytes": self._json_encode(content, content_encoding),
@@ -146,7 +146,7 @@ class SMessage(object):
         except Exception as e:
             print(
                 "error: selector.unregister() exception for",
-                f"{self.addr}: {repr(e)}",
+                "{}: {}".format(self.addr, repr(e)),
             )
 
         try:
@@ -154,7 +154,7 @@ class SMessage(object):
         except OSError as e:
             print(
                 "error: socket.close() exception for",
-                f"{self.addr}: {repr(e)}",
+                "{}: {}".format(self.addr, repr(e)),
             )
         finally:
             # Delete reference to socket object for garbage collection
@@ -182,7 +182,7 @@ class SMessage(object):
                 "content-encoding",
             ):
                 if reqhdr not in self.jsonheader:
-                    raise ValueError(f'Missing required header "{reqhdr}".')
+                    raise ValueError('Missing required header "{}".'.format(reqhdr) )
 
     def process_request(self):
         content_len = self.jsonheader["content-length"]
@@ -198,7 +198,7 @@ class SMessage(object):
             # Binary or unknown content-type
             self.request = data
             print(
-                f'received {self.jsonheader["content-type"]} request from',
+                'received {} request from'.format(self.jsonheader["content-type"]),
                 self.addr,
             )
             print("  content:  ", self.request)
@@ -263,7 +263,7 @@ class MidSMessage(SMessage):
             # Binary or unknown content-type
             self.request = data
             print(
-                f'received {self.jsonheader["content-type"]} request from',
+                'received {} request from'.format(self.jsonheader["content-type"]),
                 self.addr,
             )
             print("  content:  ", self.request)

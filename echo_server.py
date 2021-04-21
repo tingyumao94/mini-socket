@@ -9,5 +9,5 @@ if __name__ == "__main__":
 
     host, port = sys.argv[1], int(sys.argv[2])
     server = Server(host, port, demo=True)
-    print(f"file will saving to  {server.prefix}_*")
+    print("file will saving to  {}_*".format(server.prefix) )
     server.run()
